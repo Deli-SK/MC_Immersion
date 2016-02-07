@@ -6,10 +6,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-
-/**
- * Created by Deli on 26.01.2016.
- */
 public class WooodBreakEventHandler {
 
     private WoodProcessingRecipeHandler _woodProcessingRecipeHandler;

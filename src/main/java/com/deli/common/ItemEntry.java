@@ -5,9 +5,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 
-/**
- * Created by Deli on 05.02.2016.
- */
 public class ItemEntry {
     private final Item _item;
     private final int _meta;
@@ -43,16 +40,22 @@ public class ItemEntry {
         return new ItemEntry(itemStack);
     }
 
+    public static ItemEntry getItemEntry(Item item){
+        if (item == null)
+            return null;
+        return new ItemEntry(item);
+    }
+
     public static ItemEntry getOreItemEntry(Item item){
         if (item == null)
             return null;
         return new ItemEntry(item, OreDictionary.WILDCARD_VALUE);
     }
 
-    public static ItemEntry getOreItemEntry(ItemEntry entry){
+    public static ItemEntry getOreItemEntry(ItemStack entry){
         if (entry == null)
             return null;
-        return new ItemEntry(entry._item, OreDictionary.WILDCARD_VALUE);
+        return new ItemEntry(entry.getItem(), OreDictionary.WILDCARD_VALUE);
     }
 
     public ItemStack getItemStack(){
@@ -70,8 +73,7 @@ public class ItemEntry {
 
         ItemEntry itemEntry = (ItemEntry) o;
 
-        if (_meta != itemEntry._meta) return false;
-        return _item != null ? _item.equals(itemEntry._item) : itemEntry._item == null;
+        return _meta == itemEntry._meta && (_item != null ? _item.equals(itemEntry._item) : itemEntry._item == null);
 
     }
 

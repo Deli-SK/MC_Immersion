@@ -9,9 +9,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
 
-/**
- * Created by Deli on 28.01.2016.
- */
 public class WoodProcessingFeature extends FeatureBase {
 
     private final WoodProcessingRecipeHandler _woodProcessingRecipeHandler;

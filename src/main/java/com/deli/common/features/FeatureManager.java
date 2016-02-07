@@ -2,9 +2,6 @@ package com.deli.common.features;
 
 import java.util.ArrayList;
 
-/**
- * Created by Deli on 28.01.2016.
- */
 public class FeatureManager implements IFeature {
 
     private ArrayList<IFeature> _features = new ArrayList<IFeature>();

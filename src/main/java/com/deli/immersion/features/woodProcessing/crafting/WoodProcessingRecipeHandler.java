@@ -2,8 +2,9 @@ package com.deli.immersion.features.woodProcessing.crafting;
 
 import com.deli.common.ItemEntry;
 import com.deli.common.crafting.RecipeManager;
-import com.deli.common.crafting.management.IRecipeProcessingTask;
 import com.deli.common.crafting.recipes.ToolRecipe;
+import com.deli.common.system.IAction;
+import com.deli.common.system.IPredicate;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -17,9 +18,6 @@ import net.minecraftforge.oredict.OreDictionary;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by Deli on 28.01.2016.
- */
 public class WoodProcessingRecipeHandler {
     private HashMap<ItemEntry, ItemStack> _logToPlankMap = new HashMap<ItemEntry, ItemStack>();
 
@@ -27,20 +25,24 @@ public class WoodProcessingRecipeHandler {
     private final String ORE_LOGS = "logWood";
 
     public void findWoodRecipes(CraftingManager manager){
-        final WoodProcessingRecipeHandler self = this;
         RecipeManager.getInstance()
-                .forThe(OreDictionary.getOres(ORE_PLANKS))
-                .process(new IRecipeProcessingTask() {
+                .remove(new IPredicate<IRecipe>() {
+                    @Override
+                    public Boolean execute(IRecipe recipe) {
+                        ItemStack input = getInput(recipe);
+                        ItemStack output = getOutput(recipe);
+                        return isLog(input) && isPlank(output);
+                    }})
+                .process(OreDictionary.getOres(ORE_PLANKS), new IAction<IRecipe>() {
                     @Override
                     public void execute(IRecipe recipe) {
                         ItemStack input = getInput(recipe);
                         ItemStack output = getOutput(recipe);
-                        if (self.isLog(input)) {
-                            self._logToPlankMap.put(new ItemEntry(input), output);
+                        if (isLog(input)) {
+                            _logToPlankMap.put(new ItemEntry(input), output);
                         }
                     }
-                })
-                .remove();
+                });
     }
 
     public void addCustomProcessingRecipes(){
@@ -83,6 +85,19 @@ public class WoodProcessingRecipeHandler {
             return false;
 
         for (ItemStack log: OreDictionary.getOres(this.ORE_LOGS)) {
+            if (OreDictionary.itemMatches(log, item, false)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isPlank(ItemStack item) {
+        if (item == null)
+            return false;
+
+        for (ItemStack log: OreDictionary.getOres(this.ORE_PLANKS)) {
             if (OreDictionary.itemMatches(log, item, false)){
                 return true;
             }

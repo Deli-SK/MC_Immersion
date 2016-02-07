@@ -1,17 +1,15 @@
 package com.deli.immersion.features.toolBalance;
 
+import com.deli.common.ItemEntry;
 import com.deli.common.crafting.RecipeManager;
-import com.deli.common.crafting.management.IRecipeProcessingTask;
 import com.deli.common.features.FeatureBase;
+import com.deli.common.system.IAction;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 
-/**
- * Created by Deli on 29.01.2016.
- */
 public class ToolBalanceFeature extends FeatureBase {
 
     @Override
@@ -71,31 +69,36 @@ public class ToolBalanceFeature extends FeatureBase {
     }
 
     private void changeCobbleToolsToStone() {
+        IAction<IRecipe> toolProcessor = new IAction<IRecipe>() {
+            @Override
+            public void execute(IRecipe recipe) {
+                changeCobbleToStone(recipe);
+            }
+        };
+
         RecipeManager.getInstance()
-                .forThe(Items.stone_axe)
-                .and(Items.stone_hoe)
-                .and(Items.stone_pickaxe)
-                .and(Items.stone_shovel)
-                .and(Items.stone_sword)
-                .process(new IRecipeProcessingTask() {
-                    @Override
-                    public void execute(IRecipe recipe) {
-                        if (recipe instanceof ShapedOreRecipe){
-                            ShapedOreRecipe shapedRecipe = (ShapedOreRecipe)recipe;
-                            Object[] inputs = shapedRecipe.getInput();
-                            for (int i = 0; i < inputs.length; i++) {
-                                if (inputs[i] == OreDictionary.getOres("cobblestone")) {
-                                    inputs[i] = OreDictionary.getOres("stone");
-                                }
-                            }
-                        }
-                    }
-                });
+                .process(Items.stone_axe, toolProcessor)
+                .process(Items.stone_hoe, toolProcessor)
+                .process(Items.stone_pickaxe, toolProcessor)
+                .process(Items.stone_shovel, toolProcessor)
+                .process(Items.stone_sword, toolProcessor);
+    }
+
+    private void changeCobbleToStone(IRecipe recipe) {
+        if (recipe instanceof ShapedOreRecipe) {
+            ShapedOreRecipe shapedRecipe = (ShapedOreRecipe) recipe;
+            Object[] inputs = shapedRecipe.getInput();
+            for (int i = 0; i < inputs.length; i++) {
+                if (inputs[i] == OreDictionary.getOres("cobblestone")) {
+                    inputs[i] = OreDictionary.getOres("stone");
+                }
+            }
+        }
     }
 
     private void removeTool(Item tool){
         tool.setMaxDamage(1);
-        RecipeManager.getInstance().forThe(tool).remove();
+        RecipeManager.getInstance().remove(ItemEntry.getItemEntry(tool));
     }
 
     private void balanceTool(Item tool, int maxDamage){

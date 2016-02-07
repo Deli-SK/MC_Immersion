@@ -1,25 +1,23 @@
 package com.deli.common.crafting;
 
-import com.deli.common.crafting.management.IConcatenableRemovableProcessableRecipeExpression;
-import com.deli.common.crafting.management.IRemovableProcessableRecipeExpression;
-import com.deli.common.crafting.management.RecipeExpression;
-import net.minecraft.block.Block;
+import com.deli.common.ItemEntry;
+import com.deli.common.system.IAction;
+import com.deli.common.system.IPredicate;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
-/**
- * Created by Deli on 05.02.2016.
- */
 public class RecipeManager {
-    private static RecipeManager _instance;
+    private List<IPredicate<IRecipe>> _conditionsForRecipesToRemove = new ArrayList<IPredicate<IRecipe>>();
+    private Set<ItemEntry> _itemRecipesToRemove = new HashSet<ItemEntry>();
 
-    private List<RecipeExpression> _recipeExpressions = new ArrayList<RecipeExpression>();
+    private Map<ItemEntry, List<IAction<IRecipe>>> _filteredRecipeProcessors = new HashMap<ItemEntry, List<IAction<IRecipe>>>();
+    private List<IAction<IRecipe>> _recipeProcessors = new ArrayList<IAction<IRecipe>>();
+
+    private static RecipeManager _instance;
 
     public static RecipeManager getInstance(){
         if (_instance == null)
@@ -27,56 +25,82 @@ public class RecipeManager {
         return _instance;
     }
 
-    public IRemovableProcessableRecipeExpression forAll(){
-        RecipeExpression expression = new RecipeExpression();
-        this._recipeExpressions.add(expression);
-        return expression;
+    public RecipeManager remove(ItemEntry item){
+        this._itemRecipesToRemove.add(item);
+        return this;
     }
 
-    public IConcatenableRemovableProcessableRecipeExpression forThe(Item item){
-        RecipeExpression expression = new RecipeExpression();
-        this._recipeExpressions.add(expression);
-        return expression.and(item);
+    public RecipeManager remove(IPredicate<IRecipe> condition){
+        this._conditionsForRecipesToRemove.add(condition);
+        return this;
     }
 
-    public IConcatenableRemovableProcessableRecipeExpression forThe(Item item, int meta){
-        RecipeExpression expression = new RecipeExpression();
-        this._recipeExpressions.add(expression);
-        return expression.and(item, meta);
+    public RecipeManager process(IAction<IRecipe> task){
+        this._recipeProcessors.add(task);
+        return this;
     }
 
-    public IConcatenableRemovableProcessableRecipeExpression forThe(Block block){
-        RecipeExpression expression = new RecipeExpression();
-        this._recipeExpressions.add(expression);
-        return expression.and(block);
+    public RecipeManager process(Item item, IAction<IRecipe> task) {
+        return this.process(ItemEntry.getItemEntry(item), task);
     }
 
-    public IConcatenableRemovableProcessableRecipeExpression forThe(Block block, int meta){
-        RecipeExpression expression = new RecipeExpression();
-        this._recipeExpressions.add(expression);
-        return expression.and(block, meta);
+    public RecipeManager process(ItemStack stack, IAction<IRecipe> task) {
+        return this.process(ItemEntry.getItemEntry(stack), task);
     }
 
-    public IConcatenableRemovableProcessableRecipeExpression forThe(ItemStack itemStack){
-        RecipeExpression expression = new RecipeExpression();
-        this._recipeExpressions.add(expression);
-        return expression.and(itemStack);
+    public RecipeManager process(List<ItemStack> forItems, IAction<IRecipe> task) {
+        for (ItemStack stack: forItems){
+            this.process(stack, task);
+        }
+        return this;
     }
 
-    public IConcatenableRemovableProcessableRecipeExpression forThe(List<ItemStack> itemStacks){
-        RecipeExpression expression = new RecipeExpression();
-        this._recipeExpressions.add(expression);
-        return expression.and(itemStacks);
+    public RecipeManager process(ItemEntry forItem, IAction<IRecipe> task){
+        if (forItem == null)
+            return this;
+
+        List<IAction<IRecipe>> actions;
+        if (this._filteredRecipeProcessors.containsKey(forItem))
+            actions = this._filteredRecipeProcessors.get(forItem);
+        else
+        {
+            actions = new ArrayList<IAction<IRecipe>>();
+            this._filteredRecipeProcessors.put(forItem, actions);
+        }
+        actions.add(task);
+        return this;
     }
 
     public void execute(){
         Iterator<IRecipe> iterator = CraftingManager.getInstance().getRecipeList().iterator();
         while (iterator.hasNext()){
             IRecipe recipe = iterator.next();
-            boolean shouldRemove = false;
-            for (RecipeExpression expressions: this._recipeExpressions){
-                shouldRemove |= expressions.execute(recipe);
+            if (recipe == null)
+                continue;
+
+            ItemEntry key = ItemEntry.getItemEntry(recipe.getRecipeOutput());
+            ItemEntry oreKey = ItemEntry.getOreItemEntry(recipe.getRecipeOutput());
+            if (key == null || oreKey == null)
+                continue;
+
+            for (IAction<IRecipe> processor: this._recipeProcessors){
+                processor.execute(recipe);
             }
+
+            if (this._filteredRecipeProcessors.containsKey(key))
+                for (IAction<IRecipe> processor: this._filteredRecipeProcessors.get(key))
+                    processor.execute(recipe);
+
+            if (this._filteredRecipeProcessors.containsKey(oreKey))
+                for (IAction<IRecipe> processor: this._filteredRecipeProcessors.get(oreKey))
+                    processor.execute(recipe);
+
+
+            boolean shouldRemove = this._itemRecipesToRemove.contains(key);
+
+            for (IPredicate<IRecipe> condition: this._conditionsForRecipesToRemove)
+                shouldRemove |= condition.execute(recipe);
+
             if (shouldRemove)
                 iterator.remove();
         }

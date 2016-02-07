@@ -6,9 +6,6 @@ import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
-/**
- * Created by Deli on 26.01.2016.
- */
 public class ToolRecipe implements IRecipe {
 
     private final ItemStack[] _items;

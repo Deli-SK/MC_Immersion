@@ -1,8 +1,5 @@
 package com.deli.common.features;
 
-/**
- * Created by Deli on 28.01.2016.
- */
 public abstract class FeatureBase implements IFeature {
 
     @Override
@@ -22,9 +19,9 @@ public abstract class FeatureBase implements IFeature {
         this.addModCompatibility();
     }
 
-    public void registerBlocks() {};
-    public void registerItems() {};
-    public void registerEvents() {};
-    public void registerRecipes() {};
-    public void addModCompatibility() {};
+    public void registerBlocks() {}
+    public void registerItems() {}
+    public void registerEvents() {}
+    public void registerRecipes() {}
+    public void addModCompatibility() {}
 }
