@@ -1,0 +1,16 @@
+[
+{
+  "modid": "immersion",
+  "name": "Immersion",
+  "description": "More immersive experience for vanilla mechanics",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Deli_SK"],
+  "credits": "Deli_SK - Design, Coding \n - Forge team for Forge and FML \n - Mojang team for Minecraft",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
